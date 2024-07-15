@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Nobet Listesi</title><!-- Yorum satiri -->
+	<style> /* Yorum satiri */
+		body {
+			font-family: Arial, sans-serif;
+			background-color: grey;
+		}
+		.user {
+			margin-bottom: 20px;
+		}
+	</style>
+</head>
+<body>
+	<h1>Nobet Listesi</h1>
+	<div id="lastEdit"></div>
+	<div id="userList"></div>
+
+	<script>
+		fetch('data.json')
+			.then(response => response.json())
+			.then(data => {
+				// time_last_edit bilgilerini yazdır
+				const lastEdit = `Son düzenleme: ${data.time_last_edit[0]} ${data.time_last_edit[1]}`;
+				document.getElementById('lastEdit').textContent = lastEdit;
+
+				// user bilgilerini yazdır
+				const userList = document.getElementById('userList');
+				data.user.forEach(user => {
+					const userDiv = document.createElement('div');
+					userDiv.className = 'user';
+					userDiv.innerHTML = `
+						<p>ID: ${user.id}</p>
+						<p>Ad: ${user.name}</p>
+						<p>Soyad: ${user.surname}</p>
+						<p>TC Kimlik No: ${user.tc_number}</p>
+						<p>Nöbet Sayısı: ${user.shifts_number}</p>
+					`;
+					userList.appendChild(userDiv);
+				});
+			})
+			.catch(error => console.error('Error loading JSON:', error));
+	</script>
+</body>
+</html>

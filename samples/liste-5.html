@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Duty Roster / Nöbet Çizelgesi</title>
+    <style>
+		@media screen and (max-width: 420px) {
+			body {
+				width: 420px;
+			}
+		}
+
+        body {
+            background-color: black;
+            color: white;
+			font-family: Verdana, sans-serif;
+        }
+        * {box-sizing: border-box;}
+        ul {list-style-type: none;}
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 20px;
+            background-color: #333;
+        }
+
+        .header button {
+            width: 100%;
+            padding: 10px;
+            border: none;
+            background-color: #1abc9c;
+            color: white;
+            font-size: 16px;
+            cursor: pointer;
+			user-select: none;
+        }
+
+        .header button.active {
+            background-color: #16a085; /* Seçili butonun arka plan rengi */
+        }
+
+        .month,
+		.year {
+            padding: 20px 25px;
+            width: 100%;
+            background: #1abc9c;
+            text-align: center;
+			user-select: none;
+        }
+
+        .month ul,
+		.year ul {
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .month ul li,
+		.year ul li {
+            color: white;
+            font-size: 20px;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+        }
+
+        .month .prev, .month .next,
+		.year .prev, .year .next {
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .month .prev,
+		.year .prev {
+            float: left;
+        }
+
+        .month .next,
+		.year .next {
+            float: right;
+        }
+
+        .weekdays {
+			display: none;
+            margin: 0;
+            padding: 10px 0;
+            background-color: #ddd;
+			user-select: none;
+        }
+
+        .weekdays li {
+            display: inline-block;
+            width: 13.0%;
+            color: #666;
+            text-align: center;
+            padding: 5px;
+        }
+
+        .days,
+		.months {
+            padding: 10px 0;
+            background: #eee;
+            margin: 0;
+        }
+
+		.days {
+			display: none;
+		}
+
+        .days li,
+		.months li {
+            list-style-type: none;
+            display: inline-block;
+            width: 13.6%;
+            text-align: center;
+            margin-bottom: 5px;
+            font-size:12px;
+            color: #777;
+			user-select: none;
+			transition: background-color 0.3s ease;
+            padding: 5px;
+        }
+
+		.months li {
+			width:  25%;
+			padding: 10px;
+		}
+
+		.months ul {
+			padding-inline-start: 0;
+			padding: 5px;
+			padding-bottom: 0;
+		}
+
+		.days li:not(:empty):hover,
+		.months li:hover {
+			background-color: #555;
+			padding: 10px;
+			cursor: pointer;
+		}
+
+        .days li.active,
+		.months li.active {
+            padding: 10px;
+            background: #1abc9c;
+            color: white !important;
+            cursor: pointer;
+        }
+
+		#dutyOpsContent {
+			position: relative;
+			display: flex;
+			width: 50%;
+			height: 80vh;
+			flex: 0 0 50%;
+			background-color: #333;
+			overflow-y: auto;
+			/* height: calc(100vh - 100px); */
+		}
+
+		.addContent {
+			position: absolute;
+			bottom: 10px;
+			left: 8%;
+		}
+
+    </style>
+</head>
+<body>
+
+	<div class="header">
+		<button id="dutyOpsButton" class="active" onclick="dutyOps()">Duty Operations</button>
+		<button id="dutySchedButton" onclick="dutySched()">Duty Schedule</button>
+	</div>
+
+	<div id="dutyOpsContent">
+		<div class="user-list" id="user-list">
+
+
+		</div>
+		<div class="addContent">
+			<input type="text" id="usernameInput" placeholder="Enter person's name">
+			<button id="addUserBtn">Person Add</button>
+		</div>
+	</div>
+
+	<div id="dutySchedContent" style="display: none;">
+		<div class="year">
+			<ul>
+				<li class="prev" onclick="prevYear()">&#10094;</li>
+				<li>
+					<span id="currentYear"></span>
+				</li>
+				<li class="next" onclick="nextYear()">&#10095;</li>
+			</ul>
+		</div>
+
+		<div class="month">      
+			<ul>
+				<li class="prev" onclick="prevMonth()">&#10094;</li>
+				<li>
+					<span id="currentMonth"></span><br>
+					<span id="currentMonthYear"></span>
+				</li>
+				<li class="next" onclick="nextMonth()">&#10095;</li>
+			</ul>
+		</div>
+
+		<ul class="weekdays">
+			<li>Pzt</li>
+			<li>Sal</li>
+			<li>Çar</li>
+			<li>Per</li>
+			<li>Cum</li>
+			<li>Cmt</li>
+			<li>Paz</li>
+		</ul>
+
+		<ul class="months" id="calendarMonths"></ul>
+		<ul class="days" id="calendarDays"></ul>
+		<ul id="info"></ul>
+	</div>
+
+	<script>
+		function addUser() {
+			var usernameInput = document.getElementById("usernameInput");
+			var username = usernameInput.value.trim();
+
+			// Yeni bir kullanıcı elemanı oluştur
+			var userElement = document.createElement("div");
+			userElement.textContent = username;
+
+			// Kullanıcıyı listeye ekle
+			var userList = document.getElementById("user-list");
+			userList.appendChild(userElement);
+
+			// Kullanıcı eklendikten sonra input kutusunu temizle
+			// usernameInput.value = "";
+		}
+
+		document.addEventListener("DOMContentLoaded", function() {
+			document.getElementById("addUserBtn").addEventListener("click", addUser);
+		});
+	</script>
+
+	<script>
+		var today = new Date();
+		var currentMonth = today.getMonth();
+		var currentYear = today.getFullYear();
+		var months = ["Ocak", "Şubat", "Mart", "Nisan", "Mayıs", "Haziran", "Temmuz", "Ağustos", "Eylül", "Ekim", "Kasım", "Aralık"];
+
+		function displayMonths(year){
+			document.getElementById('currentYear').innerText = year;
+			var hiddenYear = document.getElementsByClassName('year');
+			hiddenYear[0].style.display = 'block';
+			var hiddenMonth = document.getElementsByClassName('month');
+			hiddenMonth[0].style.display = 'none';
+
+			var monthsElements = document.getElementsByClassName('months');
+			monthsElements[0].style.display = 'block';
+
+			var weekdaysElements = document.getElementsByClassName('weekdays');
+			weekdaysElements[0].style.display = 'none';
+
+			var daysElements = document.getElementsByClassName('days');
+			for (var i = 0; i < daysElements.length; i++) {
+				daysElements[i].style.display = 'none';
+			}
+
+			var monthsHTML = '';
+
+			for (var month = 0; month < 12; month++){
+				if (month % 4 === 0) {
+					monthsHTML += '<ul>';
+				}
+				
+				if (month === today.getMonth() && year === today.getFullYear()){
+					monthsHTML += '<li class="active" onclick="selectMonth(' + month + ',' + year + ')">' + months[month] + '</li>';
+				}
+				else {
+					monthsHTML += '<li onclick="selectMonth(' + month + ',' + year + ')">' + months[month] + '</li>';
+				}
+
+				if ((month + 1) % 4 === 0 || month === 11) {
+					monthsHTML += '</ul>';
+				}
+			}
+			document.getElementById('calendarMonths').innerHTML = monthsHTML;
+		}
+
+		function selectMonth(selectedMonth, selectedYear) {
+			// alert("Seçilen Ay-Yıl: " + months[selectedMonth] + " - " + selectedYear);
+			// var monthsElements = document.getElementsByClassName('months');
+			// for (var i = 0; i < monthsElements.length; i++) {
+			// 	monthsElements[i].style.display = 'none';
+			// }
+
+			var hiddenMonth = document.getElementsByClassName('month');
+			hiddenMonth[0].style.display = 'block';
+			var hiddenYear = document.getElementsByClassName('year');
+			hiddenYear[0].style.display = 'none';
+
+			var monthsElements = document.getElementsByClassName('months');
+			monthsElements[0].style.display = 'none';
+
+			var weekdaysElements = document.getElementsByClassName('weekdays');
+			weekdaysElements[0].style.display = 'block';
+
+			var daysElements = document.getElementsByClassName('days');
+			for (var i = 0; i < daysElements.length; i++) {
+				daysElements[i].style.display = 'block';
+			}
+
+			displayDays(selectedMonth, selectedYear);
+		}
+
+		function displayDays(month, year) {
+			var firstDay = new Date(year, month, 1);
+			var lastDay = new Date(year, month + 1, 0);
+
+			document.getElementById('currentMonth').innerText = months[firstDay.getMonth()];
+			document.getElementById('currentMonthYear').innerText = year;
+
+			var daysHTML = '';
+
+			// Fill the empty days at the beginning of the month
+			for (var i = 1; i < firstDay.getDay(); i++) {
+				daysHTML += '<li></li>';
+			}
+
+			// Fill the days of the month
+			for (var day = 1; day <= lastDay.getDate(); day++) {
+				if (day === today.getDate() && year === today.getFullYear() && month === today.getMonth()) {
+					daysHTML += '<li class="active" onclick="selectDate(' + day + ',' + month + ',' + year + ')">' + day + '</li>';
+				} else {
+					daysHTML += '<li onclick="selectDate(' + day + ',' + month + ',' + year + ')">' + day + '</li>';
+				}
+			}
+
+			document.getElementById('calendarDays').innerHTML = daysHTML;
+		}
+
+		function selectDate(day, month, year) {
+			//alert('Seçilen Tarih: ' + day + ' ' + months[month] + ' ' + year);
+		}
+
+		function prevYear(){
+			currentYear--;
+			if (currentYear < 2000)
+				currentYear = 2000;
+			displayMonths(currentYear);
+		}
+
+		function nextYear(){
+			currentYear++;
+			if (currentYear > 2100)
+				currentYear = 2050;
+			displayMonths(currentYear);
+		}
+
+		function prevMonth() {
+			currentMonth--;
+			if (currentMonth < 0) {
+				currentMonth = 11;
+				currentYear--;
+			}
+			displayDays(currentMonth, currentYear);
+		}
+
+		function nextMonth() {
+			currentMonth++;
+			if (currentMonth > 11) {
+				currentMonth = 0;
+				currentYear++;
+			}
+			displayDays(currentMonth, currentYear);
+		}
+
+		function dutyOps() {
+			// if (!document.getElementById("dutyOpsButton").classList.contains("active")) {
+				document.getElementById("dutySchedContent").style.display = "none";
+				document.getElementById("dutyOpsContent").style.display = "block";
+				document.getElementById("dutyOpsButton").classList.add("active");
+				document.getElementById("dutySchedButton").classList.remove("active");
+			// }
+		}
+
+		function dutySched() {
+			// if (!document.getElementById("dutySchedButton").classList.contains("active")) {
+				document.getElementById("dutyOpsContent").style.display = "none";
+				document.getElementById("dutySchedContent").style.display = "block";
+				document.getElementById("dutySchedButton").classList.add("active");
+				document.getElementById("dutyOpsButton").classList.remove("active");
+				// displayCalendar(currentMonth, currentYear);
+				displayMonths(currentYear);
+			// }
+		}
+
+		// displayCalendar(currentMonth, currentYear);
+	</script>
+
+</body>
+</html>
