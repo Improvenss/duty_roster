@@ -8,14 +8,18 @@
 			"name": "Ahmet",
 			"surname": "Yilmaz",
 			"tc_number": "12345678901",
-			"shifts_number": 5
+			"shifts_number": 5,
+			"foo": 123,
+			"zrot": 111111
 		},
 		{
 			"id": "2",
 			"name": "Ayşe",
 			"surname": "Kara",
 			"tc_number": "98765432100",
-			"shifts_number": 3
+			"shifts_number": 3,
+			"foo": 123,
+			"bar": 321
 		}
 	]
 }

@@ -4,46 +4,173 @@
 	<meta charset="UTF-8">
 	<meta http-equiv="X-UA-Compatible" content="IE=edge">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<title>Nobet Listesi</title><!-- Yorum satiri -->
-	<style> /* Yorum satiri */
+	<title>Nobet Listesi</title>
+	<style>
 		body {
 			font-family: Arial, sans-serif;
 			background-color: grey;
 		}
-		.user {
-			margin-bottom: 20px;
+		table {
+			width: 100%;
+			border-collapse: collapse;
+			margin-top: 20px;
+		}
+		th, td {
+			border: 1px solid black;
+			padding: 8px;
+			text-align: left;
+		}
+		#fileUploadContainer {
+			width: 200px;
+			height: 200px;
+			position: absolute;
+			top: 50%;
+			left: 50%;
+			transform: translate(-50%, -50%);
+			display: flex;
+			justify-content: center;
+			align-items: center;
+			border: 2px dashed #000;
+		}
+		#menuContainer {
+			width: 500px;
+			height: 500px;
+			position: absolute;
+			top: 50%;
+			left: 50%;
+			transform: translate(-50%, -50%);
+			display: flex;
+			flex-direction: column;
+			justify-content: center;
+			align-items: center;
+			border: 2px solid #000;
+			display: none;
+		}
+		.menuButton {
+			margin: 10px;
+			padding: 10px 20px;
+			font-size: 16px;
+			cursor: pointer;
 		}
 	</style>
 </head>
 <body>
+	<h1 id="menuLink" style="cursor: pointer;">Menü</h1>
 	<h1>Nobet Listesi</h1>
 	<div id="lastEdit"></div>
 	<div id="userList"></div>
+	<div id="fileUploadContainer" style="display: none;">
+		<input type="file" id="fileInput">
+	</div>
+	<div id="menuContainer">
+		<button class="menuButton" id="sentryButton">Nöbetçiler</button>
+		<button class="menuButton">Nöbet Çizelgesi</button>
+		<button class="menuButton">Nöbet Çetelesi</button>
+		<button class="menuButton">Nöbet Oluştur</button>
+		<button class="menuButton">Nöbet Geçmişi</button>
+	</div>
 
 	<script>
 		fetch('data.json')
-			.then(response => response.json())
-			.then(data => {
-				// time_last_edit bilgilerini yazdır
-				const lastEdit = `Son düzenleme: ${data.time_last_edit[0]} ${data.time_last_edit[1]}`;
-				document.getElementById('lastEdit').textContent = lastEdit;
-
-				// user bilgilerini yazdır
-				const userList = document.getElementById('userList');
-				data.user.forEach(user => {
-					const userDiv = document.createElement('div');
-					userDiv.className = 'user';
-					userDiv.innerHTML = `
-						<p>ID: ${user.id}</p>
-						<p>Ad: ${user.name}</p>
-						<p>Soyad: ${user.surname}</p>
-						<p>TC Kimlik No: ${user.tc_number}</p>
-						<p>Nöbet Sayısı: ${user.shifts_number}</p>
-					`;
-					userList.appendChild(userDiv);
-				});
+			.then(response => {
+				if (!response.ok) {
+					throw new Error('Network response was not ok');
+				}
+				return response.json();
 			})
-			.catch(error => console.error('Error loading JSON:', error));
+			.then(data => {
+				displayMenu();
+				window.nobetData = data;  // Store data globally
+			})
+			.catch(error => {
+				console.error('Error loading JSON:', error);
+				showFileUpload();
+			});
+
+		function clearScreen() {
+			document.getElementById('lastEdit').textContent = '';
+			document.getElementById('userList').innerHTML = '';
+			document.getElementById('fileUploadContainer').style.display = 'none';
+			document.getElementById('menuContainer').style.display = 'none';
+		}
+
+		function displayData(data) {
+			clearScreen();
+			const lastEdit = `Son düzenleme: ${data.time_last_edit[0]} ${data.time_last_edit[1]}`;
+			document.getElementById('lastEdit').textContent = lastEdit;
+
+			const userList = document.getElementById('userList');
+			const table = document.createElement('table');
+			const thead = document.createElement('thead');
+			const tbody = document.createElement('tbody');
+
+			// Create a set of all possible keys
+			const allKeys = new Set();
+			data.user.forEach(user => {
+				Object.keys(user).forEach(key => allKeys.add(key));
+			});
+
+			// Create table headers dynamically based on allKeys
+			const headers = Array.from(allKeys);
+			const headerRow = document.createElement('tr');
+			headers.forEach(header => {
+				const th = document.createElement('th');
+				th.textContent = header;
+				headerRow.appendChild(th);
+			});
+			thead.appendChild(headerRow);
+
+			// Create table rows
+			data.user.forEach(user => {
+				const row = document.createElement('tr');
+				headers.forEach(header => {
+					const td = document.createElement('td');
+					td.textContent = user[header] || '';  // If the key doesn't exist, display empty cell
+					row.appendChild(td);
+				});
+				tbody.appendChild(row);
+			});
+
+			table.appendChild(thead);
+			table.appendChild(tbody);
+			userList.appendChild(table);
+		}
+
+		function showFileUpload() {
+			clearScreen();
+			const fileUploadContainer = document.getElementById('fileUploadContainer');
+			fileUploadContainer.style.display = 'flex';
+			const fileInput = document.getElementById('fileInput');
+
+			fileInput.addEventListener('change', function() {
+				const file = fileInput.files[0];
+				if (file) {
+					const reader = new FileReader();
+					reader.onload = function(event) {
+						const data = JSON.parse(event.target.result);
+						window.nobetData = data;  // Store data globally
+						displayMenu();
+					};
+					reader.readAsText(file);
+				}
+			});
+		}
+
+		function displayMenu() {
+			clearScreen();
+			const menuContainer = document.getElementById('menuContainer');
+			menuContainer.style.display = 'flex';
+
+			document.getElementById('sentryButton').addEventListener('click', function() {
+				clearScreen();
+				displayData(window.nobetData);
+			});
+		}
+
+		document.getElementById('menuLink').addEventListener('click', function() {
+			window.scrollTo(0, 0);
+			displayMenu();
+		});
 	</script>
 </body>
 </html>

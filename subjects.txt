@@ -1,0 +1,16 @@
+Her ay için yeni bir nöbet listesi olusturulacak,
+Database -> database.json
+Html sayfası bu dosyadan kişileri okuyacak ve bu kişilere ait
+	ekstra mazeret günleride olacak.
+Ayriyetten daha önceki zamanlarda tuttuğu günlere ait icmalleride olacak;
+	örneğin, 3 cumartesi 2 pazar 1 resmi tatil nöbeti tutmuş.
+Mesela diğer kişilerin cumartesisi 4 ise bu ay bu adama bir
+	cumartesi yazilmak zorunda olacak.
+Sistem bunu anlayip kendisi  adaletli şekilde yapacak.
+Ayriyetten bizde kişi bazı şu günde şunun nöbeti olsun diye belirleyip,
+	şu gün nöbeti olmasın diyede belirleyebileceğiz.
+Resmi tatillerde nobet tutmayanlar varsa nobet onceligini
+	ilk bu tutmayanlara yazacak.
+Her olustur dendiginde otomatik olarak tekrardan nobetci olusturacak.
+
+User ekle/cikar olacak.
