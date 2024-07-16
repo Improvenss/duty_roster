@@ -55,8 +55,7 @@
 	</style>
 </head>
 <body>
-	<h1 id="menuLink" style="cursor: pointer;">Menü</h1>
-	<h1>Nobet Listesi</h1>
+	<h1 id="menuLink" style="cursor: pointer;">↩︎Menüye Geri Dön</h1>
 	<div id="lastEdit"></div>
 	<div id="userList"></div>
 	<div id="fileUploadContainer" style="display: none;">
@@ -70,11 +69,15 @@
 		<button class="menuButton">Nöbet Geçmişi</button>
 	</div>
 
+<!--
+	If your data file is already called 'data.json',
+	 the web page will automatically redirect to the menu.
+-->
 	<script>
 		fetch('data.json')
 			.then(response => {
 				if (!response.ok) {
-					throw new Error('Network response was not ok');
+					throw new Error('ERROR: Data file not found!');
 				}
 				return response.json();
 			})
